@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, Serializer
 from models import AcUser
 
 USER_TYPES = (
@@ -8,15 +8,13 @@ USER_TYPES = (
 )
 
 class AcUserSerializer(ModelSerializer):
+    user_type = serializers.CharField()
 
     class Meta:
         model = AcUser
         fields = ['user_type', 'email', 'password']
         write_only_fields = ['password']
         read_only_fields = ['id']
-
-    def get_user_type(self, user_type):
-        return user_type
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
@@ -36,27 +34,21 @@ class AcUserSerializer(ModelSerializer):
         return instance
 
 
-class AuthCustomTokenSerializer(serializers.Serializer):
-    email_or_username = serializers.CharField()
-    password = serializers.CharField()
-    user_type = serializers.SerializerMethodField
+class AuthTokenSerializer(Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(style={'input_type': 'password'})
+    user_type = serializers.SerializerMethodField()
 
-    def validate(self, attrs):
-        email_or_username = attrs.get('email_or_username')
-        password = attrs.get('password')
-        user_type = attrs.get('user_type')
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
 
-        if email_or_username and password:
-            # Check if user sent email
-            if validateEmail(email_or_username):
-                user_request = get_object_or_404(
-                    User,
-                    email=email_or_username,
-                )
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
 
-                email_or_username = user_request.username
-
-            user = authenticate(username=email_or_username, password=password)
+        if email and password:
+            user = authenticate(email=email, password=password)
 
             if user:
                 if not user.is_active:
@@ -66,8 +58,8 @@ class AuthCustomTokenSerializer(serializers.Serializer):
                 msg = _('Unable to log in with provided credentials.')
                 raise exceptions.ValidationError(msg)
         else:
-            msg = _('Must include "email or username" and "password"')
+            msg = _('Must include "email" and "password".')
             raise exceptions.ValidationError(msg)
 
-        attrs['user'] = user
-        return attrs
+        data['user'] = user
+        return data

@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 from django.conf import settings
-from django.contrib.auth.models import UserManager
 
 # Create your models here.
 
@@ -28,3 +27,6 @@ class AcUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     objects = UserManager()
+
+    def __init__(self):
+        return self.user_type

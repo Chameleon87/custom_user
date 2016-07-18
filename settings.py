@@ -29,7 +29,6 @@ ALLOWED_HOSTS = []
 
 CORS_ORIGIN_ALLOW_ALL = True
 AUTH_USER_MODEL = 'accounts.AcUser'
-# AUTHENTICATION_BACKENDS = (, )
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,7 +48,6 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
         'DEFAULT_AUTHENTICATION_CLASSES': (
             'rest_framework.authentication.TokenAuthentication',
-            # 'backend.MyAuth'
     )
 }
 
